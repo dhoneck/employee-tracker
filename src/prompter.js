@@ -24,7 +24,7 @@ const MENU_QUESTIONS = [
 const ADD_DEPARTMENT_QUESTIONS = [
   {
     type:"input",
-    name:"title",
+    name:"departmentName",
     message:"What department do you want to add? ",
   },
 ];
@@ -97,16 +97,16 @@ class Prompter {
         // Direct user to next section based on input
         let nextAction = data["nextAction"];
         if (nextAction == "View All Employees") {
-          displayAllFromTable('employee');
+          this.displayAllFromTable('employee');
         } else if (nextAction == "Add Employee") {
           this.addEmployee();
         } else if (nextAction == "Update Employee Role") {
         } else if (nextAction == "View All Roles") {
-          displayAllFromTable('role');
+          this.displayAllFromTable('role');
         } else if (nextAction == "Add Role") {
           this.addRole();
         } else if (nextAction == "View All Departments") {
-          displayAllFromTable('department');
+          this.displayAllFromTable('department');
         } else if (nextAction == "Add Department") {
           this.addDepartment();
         } else if (nextAction == "Quit") {
@@ -116,10 +116,6 @@ class Prompter {
           process.exit();
         }
       })
-      // .then(() => {
-      //   this.showMenu();
-      // });
-
   }
 
   addDepartment() {
@@ -128,9 +124,10 @@ class Prompter {
       .then(data => {
         console.log('Department data to add');
         console.log(data);
-        // let departmentName = data["departmentName"];
-        // console.log(`Attempting to add ${departmentName}`);
-        // db.query(`INSERT INTO department (name) VALUES (?)`, departmentName);
+        let departmentName = data["departmentName"];
+        console.log(`Attempting to add ${departmentName} to the department table`);
+        db.query(`INSERT INTO department (name) VALUES (?)`, departmentName);
+        this.showMenu();
       })
   }
 
@@ -140,6 +137,7 @@ class Prompter {
       .then(data => {
         console.log('Role data to add');
         console.log(data);
+        this.showMenu();
       })
   }
 
@@ -149,19 +147,21 @@ class Prompter {
       .then(data => {
         console.log('Employee data to add');
         console.log(data);
+        this.showMenu();
       })
   }
-}
 
-function displayAllFromTable(tableName) {
-  db.query(`SELECT * FROM ${tableName}`, (err, result) => {
-    if (err) {
-      console.log('displaying an error');
-    } else {
-      console.log('displaying a result');
-      console.table(result)
-    }
-  });
+  displayAllFromTable(tableName) {
+    db.query(`SELECT * FROM ${tableName}`, (err, result) => {
+      if (err) {
+        console.log('displaying an error');
+      } else {
+        console.log('displaying a result');
+        console.table(result);
+        this.showMenu();
+      }
+    });
+  }
 }
 
 module.exports = Prompter;
