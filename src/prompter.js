@@ -24,7 +24,7 @@ const MENU_QUESTIONS = [
 const ADD_DEPARTMENT_QUESTIONS = [
   {
     type:"input",
-    name:"departmentName",
+    name:"name",
     message:"What department do you want to add? ",
   },
 ];
@@ -42,7 +42,7 @@ const ADD_ROLE_QUESTIONS = [
   },
   {
     type:"list",
-    name:"department",
+    name:"departmentId",
     message:"What department does this role belong to? ",
     choices: [
       "Department placeholder 1", 
@@ -66,7 +66,7 @@ const ADD_EMPLOYEE_QUESTIONS = [
   },
   {
     type:"list",
-    name:"role",
+    name:"roleId",
     message:"What is their role? ",
     choices: [
       "Role placeholder 1", 
@@ -77,7 +77,7 @@ const ADD_EMPLOYEE_QUESTIONS = [
   },
   {
     type:"list",
-    name:"manager",
+    name:"managerId",
     message:"Who is their manager? ",
     choices: [
       "Manager placeholder 1", 
@@ -124,24 +124,46 @@ class Prompter {
       .then(data => {
         console.log('Department data to add');
         console.log(data);
-        let departmentName = data["departmentName"];
-        console.log(`Attempting to add ${departmentName} to the department table`);
-        db.query(`INSERT INTO department (name) VALUES (?)`, departmentName);
+        let name = data["name"];
+        console.log(`Attempting to add ${name} to the department table`);
+        db.query(`INSERT INTO department (name) VALUES (?)`, name);
         this.showMenu();
       })
   }
 
   addRole() {
-    inquirer
+    // Reset department ID choice array for role questions
+    ADD_ROLE_QUESTIONS[2].choices = [];
+
+    // Get department information and add to choice array for role questions
+    db.query('SELECT * FROM department', (err, departments) => {
+      for (let department of departments) {
+        ADD_ROLE_QUESTIONS[2].choices.push(`${department.id} - ${department.name}`);
+      }
+
+      // Ask role questions
+      inquirer
       .prompt(ADD_ROLE_QUESTIONS)
       .then(data => {
-        console.log('Role data to add');
-        console.log(data);
-        this.showMenu();
+        // Grab id from result and convert to an int
+        data.departmentId = parseInt(data.departmentId.split(' ')[0]);
+
+        // Insert data into role table
+        const sql = `INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)`;
+        const params = [data.title, data.salary, data.departmentId];
+        db.query(sql, params , (err, result) => {
+          if (err) {
+            console.log(err);
+          }
+          console.log(result);
+          this.showMenu();
+        });
       })
+    });     
   }
 
   addEmployee() {
+    // TODO: Add employee questions to include foreign keys
     inquirer
       .prompt(ADD_EMPLOYEE_QUESTIONS)
       .then(data => {
