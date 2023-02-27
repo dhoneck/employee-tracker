@@ -44,12 +44,7 @@ const ADD_ROLE_QUESTIONS = [
     type:"list",
     name:"departmentId",
     message:"What department does this role belong to? ",
-    choices: [
-      "Department placeholder 1", 
-      "Department placeholder 2", 
-      "Department placeholder 3", 
-      "Department placeholder 4" 
-    ],
+    choices: [],
   },
 ]
 
@@ -68,23 +63,13 @@ const ADD_EMPLOYEE_QUESTIONS = [
     type:"list",
     name:"roleId",
     message:"What is their role? ",
-    choices: [
-      "Role placeholder 1", 
-      "Role placeholder 2",
-      "Role placeholder 3", 
-      "Role placeholder 4" 
-    ],
+    choices: [],
   },
   {
     type:"list",
     name:"managerId",
     message:"Who is their manager? ",
-    choices: [
-      "Manager placeholder 1", 
-      "Manager placeholder 2",
-      "Manager placeholder 3", 
-      "Manager placeholder 4" 
-    ],
+    choices: [],
   },
 ]
 
@@ -93,23 +78,13 @@ const UPDATE_EMPLOYEE_QUESTIONS = [
     type:"list",
     name:"employeeId",
     message:"What employee would you like to update? ",
-    choices: [
-      "Role placeholder 1", 
-      "Role placeholder 2",
-      "Role placeholder 3", 
-      "Role placeholder 4" 
-    ],
+    choices: [],
   },
   {
     type:"list",
     name:"roleId",
     message:"What role should they be changed to? ",
-    choices: [
-      "Manager placeholder 1", 
-      "Manager placeholder 2",
-      "Manager placeholder 3", 
-      "Manager placeholder 4" 
-    ],
+    choices: [],
   },
 ]
 
@@ -122,17 +97,17 @@ class Prompter {
         // Direct user to next section based on input
         let nextAction = data["nextAction"];
         if (nextAction == "View All Employees") {
-          this.displayAllFromTable('employee');
+          this.displayEmployees();
         } else if (nextAction == "Add Employee") {
           this.addEmployee();
         } else if (nextAction == "Update Employee Role") {
           this.updateEmployeeRole();
         } else if (nextAction == "View All Roles") {
-          this.displayAllFromTable('role');
+          this.displayRoles();
         } else if (nextAction == "Add Role") {
           this.addRole();
         } else if (nextAction == "View All Departments") {
-          this.displayAllFromTable('department');
+          this.displayDepartments();
         } else if (nextAction == "Add Department") {
           this.addDepartment();
         } else if (nextAction == "Quit") {
@@ -255,8 +230,40 @@ class Prompter {
     });
   }
 
-  displayAllFromTable(tableName) {
-    db.query(`SELECT * FROM ${tableName}`, (err, result) => {
+  displayDepartments() {
+    const sql = `SELECT * FROM department`;
+    db.query(sql, (err, result) => {
+      console.table(result);
+      this.showMenu();
+    });
+  }
+
+  displayRoles() {
+    const sql = `SELECT role.id, role.title, department.name AS department, role.salary 
+                 FROM role 
+                 INNER JOIN department On role.department_id = department.id`;
+    db.query(sql, (err, result) => {
+      console.table(result);
+      this.showMenu();
+    });
+  }
+
+  // id, first_name, last_name, title, department, salary, manager
+  displayEmployees() {
+    const sql = `SELECT 
+                  e1.id, 
+                  e1.first_name, 
+                  e1.last_name, 
+                  r.title, 
+                  d.name AS department, 
+                  r.salary, 
+                  CONCAT(e2.first_name, ' ', e2.last_name) AS manager
+                 FROM employee e1
+                 LEFT JOIN employee e2 ON e1.manager_id = e2.id
+                 INNER JOIN role AS r ON e1.role_id = r.id
+                 INNER JOIN department AS d ON r.department_id = d.id`;
+
+    db.query(sql, (err, result) => {
       console.table(result);
       this.showMenu();
     });
