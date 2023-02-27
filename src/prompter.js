@@ -88,6 +88,31 @@ const ADD_EMPLOYEE_QUESTIONS = [
   },
 ]
 
+const UPDATE_EMPLOYEE_QUESTIONS = [
+  {
+    type:"list",
+    name:"employeeId",
+    message:"What employee would you like to update? ",
+    choices: [
+      "Role placeholder 1", 
+      "Role placeholder 2",
+      "Role placeholder 3", 
+      "Role placeholder 4" 
+    ],
+  },
+  {
+    type:"list",
+    name:"roleId",
+    message:"What role should they be changed to? ",
+    choices: [
+      "Manager placeholder 1", 
+      "Manager placeholder 2",
+      "Manager placeholder 3", 
+      "Manager placeholder 4" 
+    ],
+  },
+]
+
 class Prompter {
   // Displays a menu using inquirer
   showMenu() {
@@ -101,6 +126,7 @@ class Prompter {
         } else if (nextAction == "Add Employee") {
           this.addEmployee();
         } else if (nextAction == "Update Employee Role") {
+          this.updateEmployeeRole();
         } else if (nextAction == "View All Roles") {
           this.displayAllFromTable('role');
         } else if (nextAction == "Add Role") {
@@ -157,7 +183,6 @@ class Prompter {
   }
 
   addEmployee() {
-    // TODO: Add employee questions to include foreign keys
     // Reset role and manager ID choice arrays for employee questions
     ADD_EMPLOYEE_QUESTIONS[2].choices = [];
     ADD_EMPLOYEE_QUESTIONS[3].choices = ['No manager'];
@@ -193,6 +218,39 @@ class Prompter {
       db.query(sql, params , (err, result) => {
         console.log(`Added ${data.firstName} ${data.lastName} to the employee table.\n`);
         this.showMenu();
+      });
+    });
+  }
+
+  updateEmployeeRole() {
+    // Reset employee and role ID choice array
+    UPDATE_EMPLOYEE_QUESTIONS[0].choices = [];
+    UPDATE_EMPLOYEE_QUESTIONS[1].choices = [];
+
+    // Get employee information and add to choice array
+    db.query('SELECT * FROM employee', (err, employees) => {
+      for (let employee of employees) {
+        UPDATE_EMPLOYEE_QUESTIONS[0].choices.push(`${employee.id} - ${employee.first_name} ${employee.last_name}`);
+      }
+      db.query('SELECT * FROM role', (err, roles) => {
+        for (let role of roles) {
+          UPDATE_EMPLOYEE_QUESTIONS[1].choices.push(`${role.id} - ${role.title}`);
+        }
+        // Ask questions to update employee role
+        inquirer
+        .prompt(UPDATE_EMPLOYEE_QUESTIONS)
+        .then(data => {
+          // Grab ids from result and convert to ints
+          data.employeeId = parseInt(data.employeeId.split(' ')[0]);
+          data.roleId = parseInt(data.roleId.split(' ')[0]);
+          // Insert data into employee table
+          const sql = `UPDATE employee SET role_id = ? WHERE id = ?`;
+          const params = [data.roleId, data.employeeId];
+          db.query(sql, params , (err, result) => {
+            console.log(`Updated the role for the employee.\n`);
+            this.showMenu();
+          });
+        });
       });
     });
   }
