@@ -110,7 +110,7 @@ class Prompter {
         } else if (nextAction == "Add Department") {
           this.addDepartment();
         } else if (nextAction == "Quit") {
-          console.log('Disconnecting Database.');
+          console.log('Disconnecting database.');
           db.end()
           console.log('Quitting the application.');
           process.exit();
@@ -122,11 +122,8 @@ class Prompter {
     inquirer
       .prompt(ADD_DEPARTMENT_QUESTIONS)
       .then(data => {
-        console.log('Department data to add');
-        console.log(data);
-        let name = data["name"];
-        console.log(`Attempting to add ${name} to the department table`);
-        db.query(`INSERT INTO department (name) VALUES (?)`, name);
+        db.query(`INSERT INTO department (name) VALUES (?)`, data.name);
+        console.log(`Added ${data.name} to the department table.\n`);
         this.showMenu();
       })
   }
@@ -152,10 +149,7 @@ class Prompter {
         const sql = `INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)`;
         const params = [data.title, data.salary, data.departmentId];
         db.query(sql, params , (err, result) => {
-          if (err) {
-            console.log(err);
-          }
-          console.log(result);
+          console.log(`Added ${data.title} to the department table.\n`);
           this.showMenu();
         });
       })
@@ -164,24 +158,49 @@ class Prompter {
 
   addEmployee() {
     // TODO: Add employee questions to include foreign keys
+    // Reset role and manager ID choice arrays for employee questions
+    ADD_EMPLOYEE_QUESTIONS[2].choices = [];
+    ADD_EMPLOYEE_QUESTIONS[3].choices = ['No manager'];
+
+    // Get role information and add to choice array for employee questions
+    db.query('SELECT id, title FROM role', (err, roles) => {
+      for (let role of roles) {
+        ADD_EMPLOYEE_QUESTIONS[2].choices.push(`${role.id} - ${role.title}`);
+      }
+
+      db.query('SELECT * FROM employee', (err, employees) => {
+        for (let employee of employees) {
+          ADD_EMPLOYEE_QUESTIONS[3].choices.push(`${employee.id} - ${employee.first_name} ${employee.last_name}`);
+        }
+      });
+    });
+
+    // Ask employee questions
     inquirer
-      .prompt(ADD_EMPLOYEE_QUESTIONS)
-      .then(data => {
-        console.log('Employee data to add');
-        console.log(data);
+    .prompt(ADD_EMPLOYEE_QUESTIONS)
+    .then(data => {
+      // Grab ids from result and convert to ints
+      data.roleId = parseInt(data.roleId.split(' ')[0]);
+      if (data.managerId == 'No manager') {
+        data.managerId = null;
+      } else {
+        data.managerId = parseInt(data.managerId.split(' ')[0]);
+      }
+
+      // Insert data into employee table
+      const sql = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)`;
+      const params = [data.firstName, data.lastName, data.roleId, data.managerId];
+      db.query(sql, params , (err, result) => {
+        console.log(`Added ${data.firstName} ${data.lastName} to the employee table.\n`);
         this.showMenu();
-      })
+      });
+    });
   }
 
   displayAllFromTable(tableName) {
     db.query(`SELECT * FROM ${tableName}`, (err, result) => {
-      if (err) {
-        console.log('displaying an error');
-      } else {
-        console.log('displaying a result');
-        console.table(result);
-        this.showMenu();
-      }
+      console.table(result);
+      this.showMenu();
     });
   }
 }
