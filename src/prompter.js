@@ -1,8 +1,9 @@
 // Import inquirer module
 const inquirer = require("inquirer");
-const db = require("./dbManager");
 const cTable = require("console.table");
+const db = require("./dbManager");
 
+// Inquirer Questions
 const MENU_QUESTIONS = [
   {
     type:"list",
@@ -126,7 +127,7 @@ class Prompter {
         db.query(`INSERT INTO department (name) VALUES (?)`, data.name);
         console.log(`Added ${data.name} to the department table.\n`);
         this.showMenu();
-      })
+      });
   }
 
   addRole() {
@@ -150,7 +151,7 @@ class Prompter {
         const sql = `INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)`;
         const params = [data.title, data.salary, data.departmentId];
         db.query(sql, params , (err, result) => {
-          console.log(`Added ${data.title} to the department table.\n`);
+          console.log(`Added ${data.title} to the role table.\n`);
           this.showMenu();
         });
       })
@@ -233,7 +234,11 @@ class Prompter {
   displayDepartments() {
     const sql = `SELECT * FROM department`;
     db.query(sql, (err, result) => {
-      console.table(result);
+      if (result == false) {
+        console.log('No results from the department table.\n');
+      } else {
+        console.table(result);
+      }
       this.showMenu();
     });
   }
@@ -243,7 +248,11 @@ class Prompter {
                  FROM role 
                  INNER JOIN department On role.department_id = department.id`;
     db.query(sql, (err, result) => {
-      console.table(result);
+      if (result == false) {
+        console.log('No results from the roles table.\n');
+      } else {
+        console.table(result);
+      }
       this.showMenu();
     });
   }
@@ -264,7 +273,11 @@ class Prompter {
                  INNER JOIN department AS d ON r.department_id = d.id`;
 
     db.query(sql, (err, result) => {
-      console.table(result);
+      if (result == false) {
+        console.log('No results from the employees table.\n');
+      } else {
+        console.table(result);
+      }
       this.showMenu();
     });
   }
