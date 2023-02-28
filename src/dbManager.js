@@ -14,8 +14,13 @@ const db = mysql.createConnection(
 
 // Run test query to see if database is connected
 db.query('SELECT 1+1 as test1', (err, result) => {
+  // If the query has an error let the user know and exit the app
   if (err) {
-    console.log('\n\nDatabase connection failed. Please check that staff_db exists in your MySQL server and that credentials are correct.')
+    console.log('\n\nDatabase connection failed.');
+    console.log(`Check that 'staff_db' exists in your MySQL server and that credentials are correct in your .env file.`);
+    console.log(`Try running 'source schema.sql' in MySQL to create the database and tables.`);
+    console.log('Quitting the application.');
+    db.end();
     process.exit();
   }
 });

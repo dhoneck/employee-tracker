@@ -2,7 +2,7 @@
 # Employee Tracker
 
 ## Description
-This application is a content management system (CMS) for employee information. A user can keep track of their organization's departments, roles, and employees this CLI program. Data is stored in a MySQL database. View the [demo](https://drive.google.com/file/d/1FMxvfpumxzW_l31AFT5GE5h0bogCSW_F/view).
+This application is a content management system (CMS) for employee information. A user can keep track of their organization's departments, roles, and employees this CLI program. Data is stored in a MySQL database. View the [demo](https://drive.google.com/file/d/1v3wsPAHGaXsgjtKm8nDpLsrnaKgCxVLY/view).
 
 ## Table of Contents
 1. [Installation](#installation)
